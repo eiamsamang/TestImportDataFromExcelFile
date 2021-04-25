@@ -12,7 +12,43 @@ namespace TestImportDataFromExcelFile
     {
         static void Main(string[] args)
         {
-            TestImportDataFromExcelFile();
+            //TestImportDataFromExcelFile();
+            ExportJsonDataToExcelFile();
+        }
+
+        private static void ExportJsonDataToExcelFile()
+        {
+            //var oldExcelPath = Path.Combine(Directory.GetCurrentDirectory(), "ExcelDataFiles", "Book1.xlsx");
+            var newExcelPath = Path.Combine(Directory.GetCurrentDirectory(), "ExcelDataFiles", "Book2.xlsx");
+            var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), "ExcelDataFiles", "output.json");
+            var jsonDataList = new List<CLSExcelToJson>();
+            using (StreamReader sr = new StreamReader(jsonPath))
+            {
+                var jsondata = sr.ReadToEnd();
+                if (jsondata != null)
+                {
+                    jsonDataList = JsonConvert.DeserializeObject<List<CLSExcelToJson>>(jsondata);
+                    using (var excelWB = new XLWorkbook())
+                    {
+                        //var workSheet = excelWB.Worksheet(1);
+                        var workSheet = excelWB.Worksheets.Add("JsonExport");
+                        if (jsonDataList.Count() > 0)
+                        {
+                            var rowCount = 1;
+                            foreach (var jsondataForExcel in jsonDataList)
+                            {
+                                workSheet.Cell(rowCount, 1).Value = jsondataForExcel.Column1;
+                                workSheet.Cell(rowCount, 2).Value = jsondataForExcel.Column2;
+                                workSheet.Cell(rowCount, 3).Value = jsondataForExcel.Column3;
+                                workSheet.Cell(rowCount, 4).Value = "Output from program";
+                                rowCount++;
+                            }
+
+                        }
+                        excelWB.SaveAs(newExcelPath);
+                    }
+                }
+            }
         }
 
         private static void TestImportDataFromExcelFile()
@@ -21,6 +57,7 @@ namespace TestImportDataFromExcelFile
             {
                 var excelDataPath = "ExcelDataFiles";
                 var fullPath = Path.Combine(Directory.GetCurrentDirectory(), excelDataPath, "Book1.xlsx");
+                var jsonPath = Path.Combine(Directory.GetCurrentDirectory(), excelDataPath, "output.json");
                 var excelToJsonList = new List<CLSExcelToJson>();
                 using (var excelWB = new XLWorkbook(fullPath))
                 {
@@ -45,6 +82,10 @@ namespace TestImportDataFromExcelFile
                         {
                             var dataJson = JsonConvert.SerializeObject(excelToJsonList);
                             Console.WriteLine(dataJson);
+                            using (StreamWriter sw = new StreamWriter(jsonPath))
+                            {
+                                sw.Write(dataJson);
+                            }
                         }
                     }
                 }
